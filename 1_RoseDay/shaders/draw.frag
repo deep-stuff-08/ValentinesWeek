@@ -20,10 +20,10 @@ void main(void) {
 	vec3 L = normalize(fs_in.L);
 	vec3 V = normalize(fs_in.V);
 	vec3 R = reflect(-L, N);
-	float ambient = 0.03;
+	float ambient = 0.1;
 	float diffuse = max(dot(N, L), 0.0);
 	float specular = pow(max(dot(R, V), 0.0), 100.0);
-	vec3 lightColor = vec3(1.0, 0.5, 0.5);
+	vec3 lightColor = vec3(1.0, 1.0, 1.0);
 	vec4 diffuseTextureColor = texture(diffuseTexture, fs_in.Tex);
 	vec4 specularTextureColor = texture(specularTexture, fs_in.Tex);
 	fragColor = vec4(ambient * lightColor + diffuse * lightColor, 1.0) * diffuseTextureColor + vec4(specular * lightColor, 1.0) * specularTextureColor;

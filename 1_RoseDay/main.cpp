@@ -3,6 +3,7 @@
 #include"../include/gltextureloader.h"
 #include"../include/glmodelloader.h"
 #include"../include/vmath.h"
+#include"../include/shapes.h"
 #include<iostream>
 #include<assimp/postprocess.h>
 
@@ -13,6 +14,8 @@ glmodel_dl model;
 glprogram_dl modelProgram;
 glprogram_dl fsquadProgram;
 glprogram_dl blurProgram;
+glprogram_dl skyBoxProgram;
+shapes_dl sphereMap;
 string directory;
 
 struct GLTimer {
@@ -25,7 +28,7 @@ struct GLCamera {
 	vec3 front;
 	vec3 up;
 } glcamera = {
-	vec3(0.0f, 0.0f, 3.0f),
+	vec3(0.0f, 0.0f, 1.0f),
 	vec3(0.0f, 0.0f, -1.0f),
 	vec3(0.0f, 1.0f, 0.0f)
 };
@@ -37,7 +40,13 @@ GLuint texSceneColor;
 GLuint texSceneBright;
 GLuint texPing;
 GLuint texPong;
+GLuint texForest;
+GLuint texRoseDay;
 GLuint rboScene;
+
+GLuint currentScene = 0;
+int signFade = 1;
+bool startFade = false;
 
 void setupProgram() {
 	glshader_dl vertexShader, fragmentShader;
@@ -60,6 +69,14 @@ void setupProgram() {
 	cout<<glshaderCreate(&fragmentShader, GL_FRAGMENT_SHADER, "shaders/blur.frag", DL_SHADER_CORE, 460);
 
 	cout<<glprogramCreate(&blurProgram, "Blur", { vertexShader, fragmentShader });
+
+	glshaderDestroy(&vertexShader);
+	glshaderDestroy(&fragmentShader);
+
+	cout<<glshaderCreate(&vertexShader, GL_VERTEX_SHADER, "shaders/skybox.vert", DL_SHADER_CORE, 460);
+	cout<<glshaderCreate(&fragmentShader, GL_FRAGMENT_SHADER, "shaders/skybox.frag", DL_SHADER_CORE, 460);
+
+	cout<<glprogramCreate(&skyBoxProgram, "Skybox", { vertexShader, fragmentShader });
 
 	glshaderDestroy(&vertexShader);
 	glshaderDestroy(&fragmentShader);
@@ -118,13 +135,28 @@ void init(void) {
 
 	cout<<createModel(&model, "../models/rose/rose.obj", aiProcess_FlipUVs | aiProcess_Triangulate | aiProcess_CalcTangentSpace, 0, 1, 2);
 
+	cout<<createTexture2D(&texForest, "../textures/forest.jpg");
+	glBindTexture(GL_TEXTURE_2D, texForest);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	cout<<createTexture2D(&texRoseDay, "../textures/roseday.jpg");
+
+	initUnitSphere(&sphereMap, 15, 30, 0, 1, 2);
+
 	glEnable(GL_DEPTH_TEST);
+}
+
+void update() {
+
 }
 
 void render(void) {
 	float currentTime = getTime();
 	gltime.delta = currentTime - gltime.last;
 	gltime.last = currentTime;
+
+	static float transY = 0.8f;
+	static float transZ = -0.3f;
+	static float fade = 1.0f;
 
 	glBindFramebuffer(GL_FRAMEBUFFER, fboScene);
 	
@@ -133,10 +165,18 @@ void render(void) {
 	glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 	glViewport(0, 0, 1024, 1024);
 
+	glUseProgram(skyBoxProgram.programObject);
+	glUniformMatrix4fv(0, 1, GL_FALSE, perspective(45.0f, winSize.w / winSize.h, 0.1f, 100.0f));
+	glUniformMatrix4fv(1, 1, GL_FALSE, lookat(vec3(0.0f, 0.0f, 0.0f), glcamera.front, glcamera.up));
+	glUniformMatrix4fv(2, 1, GL_FALSE, translate(0.0f, transY, 0.0f) * rotate((float)getTime() * 10.0f, vec3(0.0f, 1.0f, 0.0f)) * scale(10.0f));	
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texForest);
+	renderShape(&sphereMap);
+
 	glUseProgram(modelProgram.programObject);
 	glUniformMatrix4fv(0, 1, GL_FALSE, perspective(45.0f, winSize.w / winSize.h, 0.1f, 100.0f));
 	glUniformMatrix4fv(1, 1, GL_FALSE, lookat(glcamera.position, glcamera.front + glcamera.position, glcamera.up));
-	glUniformMatrix4fv(2, 1, GL_FALSE, translate(0.0f, -0.5f, 0.0f) * rotate((float)getTime() * 40.0f, vec3(0.0f, 1.0f, 0.0f)));	
+	glUniformMatrix4fv(2, 1, GL_FALSE, translate(0.0f, transY, transZ) * rotate((float)getTime() * 10.0f, vec3(0.0f, 1.0f, 0.0f)));	
 	drawModel(&model);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, fboPing);
@@ -178,12 +218,34 @@ void render(void) {
 	glViewport(0, 0, winSize.w, winSize.h);
 	glDisable(GL_DEPTH_TEST);
 	glUseProgram(fsquadProgram.programObject);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texSceneColor);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, texPong);
+	glUniform1f(0, fade);
+	if(currentScene == 0) {
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texSceneColor);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texPong);
+	} else if(currentScene == 1) {
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texRoseDay);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, 0);	
+	}
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glEnable(GL_DEPTH_TEST);
+
+	transY -= (float)gltime.delta * 0.05f;
+	transY = std::max(transY, -0.7f);
+
+	transZ -= (float)gltime.delta * 0.03f;
+	transZ = std::max(transZ, -0.6f);
+
+	if(startFade) {
+		fade += (float)gltime.delta * 0.2f * signFade;
+		if(fade > 1.0f || fade < 0.0f) {
+			fade = (fade > 0.5) ? 1.0f : 0.0f;
+			startFade = false;
+		}
+	}
 }
 
 void uninit(void) {
@@ -207,6 +269,13 @@ void keyboard(unsigned int key, int state) {
 		break;
 	case 'F': case 'f':
 		toggleFullscreen();
+		break;
+	case 'C': case 'c':
+		currentScene += 1;
+		break;
+	case ' ':
+		startFade = true;
+		signFade *= -1;
 		break;
 	case DL_ESCAPE:
 		closeOpenGLWindow();
@@ -251,9 +320,10 @@ void mouse(int x, int y) {
 
 int main(void) {
 	setKeyboardFunc(keyboard);
-	setMouseFunc(mouse);
+	// setMouseFunc(mouse);
 	createOpenGLWindow();
 	init();
+	toggleFullscreen();
 	while(!isOpenGLWindowClosed()) {
 		processEvents();
 		render();
