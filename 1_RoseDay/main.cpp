@@ -144,10 +144,6 @@ void init(void) {
 	glEnable(GL_DEPTH_TEST);
 }
 
-void update() {
-
-}
-
 void render(void) {
 	float currentTime = getTime();
 	gltime.delta = currentTime - gltime.last;
