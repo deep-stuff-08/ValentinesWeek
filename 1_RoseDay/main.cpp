@@ -16,7 +16,6 @@ glprogram_dl fsquadProgram;
 glprogram_dl blurProgram;
 glprogram_dl skyBoxProgram;
 shapes_dl sphereMap;
-string directory;
 
 struct GLTimer {
 	double delta;
@@ -135,7 +134,7 @@ void init(void) {
 
 	cout<<createModel(&model, "../models/rose/rose.obj", aiProcess_FlipUVs | aiProcess_Triangulate | aiProcess_CalcTangentSpace, 0, 1, 2);
 
-	cout<<createTexture2D(&texForest, "../textures/forest.jpg");
+	cout<<createTexture2D(&texForest, "../textures/hall.png");
 	glBindTexture(GL_TEXTURE_2D, texForest);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	cout<<createTexture2D(&texRoseDay, "../textures/roseday.jpg");
@@ -177,7 +176,7 @@ void render(void) {
 	glUniformMatrix4fv(0, 1, GL_FALSE, perspective(45.0f, winSize.w / winSize.h, 0.1f, 100.0f));
 	glUniformMatrix4fv(1, 1, GL_FALSE, lookat(glcamera.position, glcamera.front + glcamera.position, glcamera.up));
 	glUniformMatrix4fv(2, 1, GL_FALSE, translate(0.0f, transY, transZ) * rotate((float)getTime() * 10.0f, vec3(0.0f, 1.0f, 0.0f)));	
-	drawModel(&model);
+	drawModel(&model, 4);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, fboPing);
 	glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 1.0f));
