@@ -19,7 +19,6 @@ using namespace vmath;
 
 glprogram_dl simpleDepthProgram;
 glprogram_dl shadowMapProgram;
-glprogram_dl shadowMapNewProgram;
 glmodel_dl boy;
 glmodel_dl girl;
 
@@ -46,8 +45,6 @@ GLuint texFloor;
 
 vec3 lightPos = vec3(0.0f, 2.0f, -3.0f);
 
-bool useNew = false;
-
 void createProgram() {
 	glshader_dl renderVertex, renderFragment;
 
@@ -64,13 +61,6 @@ void createProgram() {
 
 	cout<<glprogramCreate(&shadowMapProgram, "Shadow Map", { renderVertex, renderFragment });
 
-	glshaderDestroy(&renderFragment);
-
-	cout<<glshaderCreate(&renderFragment, GL_FRAGMENT_SHADER, "shaders/shadowMapNew.frag");
-
-	cout<<glprogramCreate(&shadowMapNewProgram, "Shadow Map New", { renderVertex, renderFragment });
-
-	glshaderDestroy(&renderVertex);
 	glshaderDestroy(&renderFragment);
 }
 
@@ -156,28 +146,18 @@ void render(void) {
 	glViewport(0, 0, SHADOW_WIDTH_HEIGHT, SHADOW_WIDTH_HEIGHT);
 	glUseProgram(simpleDepthProgram.programObject);
 	glUniformMatrix4fv(0, 1, GL_FALSE, lightSpaceMatrix);
-	if(useNew) {
-		glEnable(GL_POLYGON_OFFSET_FILL);
-	}
+	glEnable(GL_POLYGON_OFFSET_FILL);
 	renderScene();
 
-	if(useNew) {
-		glDisable(GL_POLYGON_OFFSET_FILL);
-		glUseProgram(shadowMapNewProgram.programObject);
-	} else {
-		glUseProgram(shadowMapProgram.programObject);
-	}
+	glDisable(GL_POLYGON_OFFSET_FILL);
+	glUseProgram(shadowMapProgram.programObject);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClearBufferfv(GL_COLOR, 0, vec4(0.1f, 0.1f, 0.1f, 1.0f));
 	glClearBufferfv(GL_DEPTH, 0, vec1(1.0f));
 	glViewport(0, 0, winSize.w, winSize.h);
 	glUniformMatrix4fv(0, 1, GL_FALSE, perspective(45.0f, winSize.w / winSize.h, 0.1f, 100.0f));
 	glUniformMatrix4fv(1, 1, GL_FALSE, lookat(glcamera.position, glcamera.front + glcamera.position, glcamera.up));
-	if(useNew) {
-		glUniformMatrix4fv(3, 1, GL_FALSE, scaleBiasMatrix * lightSpaceMatrix);
-	} else {
-		glUniformMatrix4fv(3, 1, GL_FALSE, lightSpaceMatrix);
-	}
+	glUniformMatrix4fv(3, 1, GL_FALSE, scaleBiasMatrix * lightSpaceMatrix);
 	glUniform3fv(4, 1, lightPos);
 	glUniform3fv(5, 1, glcamera.position);
 	glActiveTexture(GL_TEXTURE0);
@@ -204,10 +184,6 @@ void keyboard(unsigned int key, int state) {
 		break;
 	case 'A': case 'a':
 		glcamera.position -= speed * normalize(cross(glcamera.front, glcamera.up));
-		break;
-	case 'N': case 'n':
-		useNew = !useNew;
-		cout<<"Switched to "<<(useNew ? "New" : "Old")<<" version"<<endl;
 		break;
 	case 'F': case 'f':
 		toggleFullscreen();
