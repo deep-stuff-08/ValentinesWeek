@@ -84,6 +84,6 @@ struct glmodel_dl {
 std::string createModel(glmodel_dl* model, std::string path, unsigned flags, int vPosAttr = -1, int vNorAttr = -1, int vTexAttrib = -1, int vTanAttrib = -1, int vBitAttriib = -1, int vBoneIDAttrib = -1, int vWeightAttrib = -1);
 void setBoneMatrixUniform(glmodel_dl *model, int i, int uniformLocation);
 std::string updateModel(glmodel_dl *model, float delta, int i);
-void drawModel(glmodel_dl *model, int instance = 1);
+void drawModel(glmodel_dl *model, int emmissionLocation = -1, int instance = 1);
 
 #endif
