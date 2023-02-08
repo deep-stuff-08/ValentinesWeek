@@ -110,7 +110,7 @@ void init(void) {
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 
 	cout<<createTexture2D(&texFloor, "../textures/floor.jpg");
-	cout<<createTexture2D(&texProposeDay, "../textures/roseday.jpg");
+	cout<<createTexture2D(&texProposeDay, "../textures/proposeday.jpg");
 
 	glGenTextures(1, &texDepth);
 	glBindTexture(GL_TEXTURE_2D, texDepth);
