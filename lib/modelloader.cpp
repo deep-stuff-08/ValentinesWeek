@@ -419,7 +419,7 @@ string updateModel(glmodel_dl *mo, float dt, int i) {
 	}
 }
 
-void drawModel(glmodel_dl *mo, int instance) {
+void drawModel(glmodel_dl *mo, int emmissionLocation, int instance) {
 	for(unsigned int i = 0; i < mo->meshes.size(); i++) {
 		if(mo->meshes[i].diffuseTextures.size() > 0) {
 			glActiveTexture(GL_TEXTURE0);
@@ -429,7 +429,9 @@ void drawModel(glmodel_dl *mo, int instance) {
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, mo->meshes[i].specularTextures[0]);
 		}
-		glUniform3fv(4, 1, mo->meshes[i].emissionColor);
+		if(emmissionLocation != -1) {
+			glUniform3fv(4, 1, mo->meshes[i].emissionColor);
+		}
 		glBindVertexArray(mo->meshes[i].vao);
 		glDrawElementsInstanced(GL_TRIANGLES, mo->meshes[i].trianglePointCount, GL_UNSIGNED_INT, 0, instance);
 	}
