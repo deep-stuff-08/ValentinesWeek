@@ -134,7 +134,7 @@ void init(void) {
 
 	cout<<createModel(&model, "../models/rose/rose.obj", aiProcess_FlipUVs | aiProcess_Triangulate | aiProcess_CalcTangentSpace, 0, 1, 2);
 
-	cout<<createTexture2D(&texForest, "../textures/hall.png");
+	cout<<createTexture2D(&texForest, "../textures/forest.jpg");
 	glBindTexture(GL_TEXTURE_2D, texForest);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	cout<<createTexture2D(&texRoseDay, "../textures/roseday.jpg");
