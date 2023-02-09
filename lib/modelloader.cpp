@@ -36,7 +36,7 @@ string loadMaterialTextures(aiMaterial *mat, aiTextureType type, string director
 		string filename = directory + '/' + str.C_Str();
 		if(texturesLoaded.count(filename) == 0) {
 			unsigned int textureID;
-			cout<<createTexture2D(&textureID, filename.c_str());
+			errStr<<createTexture2D(&textureID, filename.c_str());
 			textureVector.push_back(textureID);
 			texturesLoaded[filename] = textureID;
 		} else {
