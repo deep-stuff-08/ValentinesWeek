@@ -270,7 +270,7 @@ void init(void) {
 	glBindTexture(GL_TEXTURE_2D, texColor);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, ubvec4(190, 100, 30, 255));
 	cout<<createTexture2D(&texColorG, "../textures/grass.png");
-	cout<<createTexture2D(&texChocolateDay, "../textures/chocolateday.jpg");
+	cout<<createTexture2D(&texChocolateDay, "../textures/teddyday.jpg");
 
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_DEPTH_TEST);
