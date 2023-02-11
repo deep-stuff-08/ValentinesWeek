@@ -25,15 +25,14 @@ struct GLCamera {
 	vec3 front;
 	vec3 up;
 } glcamera = {
-	vec3(0.0f, 0.0f, 1.0f),
+	vec3(0.0f, 0.0f, 0.0f),
 	vec3(0.0f, 0.0f, -1.0f),
 	vec3(0.0f, 1.0f, 0.0f)
 };
 
 GLuint fboScene;
 GLuint texSceneColor;
-GLuint texForest;
-GLuint texRoseDay;
+GLuint texPromiseDay;
 GLuint rboScene;
 GLuint vaoSkybox;
 GLuint texSkybox;
@@ -148,17 +147,17 @@ void init(void) {
 	int w, h;
 	glGenTextures(1, &texSkybox);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texSkybox);
-	cout<<loadTextureData("../textures/skybox/right.jpg", &data, &w, &h);
+	cout<<loadTextureData("../textures/skybox/posx.jpg", &data, &w, &h);
 	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA8, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, data);
-	cout<<loadTextureData("../textures/skybox/left.jpg", &data, &w, &h);
+	cout<<loadTextureData("../textures/skybox/negx.jpg", &data, &w, &h);
 	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA8, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, data);
-	cout<<loadTextureData("../textures/skybox/bottom.jpg", &data, &w, &h);
+	cout<<loadTextureData("../textures/skybox/negy.jpg", &data, &w, &h);
 	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA8, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, data);
-	cout<<loadTextureData("../textures/skybox/top.jpg", &data, &w, &h);
+	cout<<loadTextureData("../textures/skybox/posy.jpg", &data, &w, &h);
 	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA8, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, data);
-	cout<<loadTextureData("../textures/skybox/front.jpg", &data, &w, &h);
+	cout<<loadTextureData("../textures/skybox/posz.jpg", &data, &w, &h);
 	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA8, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, data);
-	cout<<loadTextureData("../textures/skybox/back.jpg", &data, &w, &h);
+	cout<<loadTextureData("../textures/skybox/negz.jpg", &data, &w, &h);
 	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA8, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, data);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -168,10 +167,7 @@ void init(void) {
 
 	cout<<createModel(&model, "../models/ring/ring.obj", aiProcess_Triangulate, 0, 1);
 
-	cout<<createTexture2D(&texForest, "../textures/forest.jpg");
-	glBindTexture(GL_TEXTURE_2D, texForest);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	cout<<createTexture2D(&texRoseDay, "../textures/roseday.jpg");
+	cout<<createTexture2D(&texPromiseDay, "../textures/promiseday.jpg");
 
 	glEnable(GL_DEPTH_TEST);
 }
@@ -181,7 +177,9 @@ void render(void) {
 	gltime.delta = currentTime - gltime.last;
 	gltime.last = currentTime;
 
-	static float fade = 0.0f;
+	static float fade = 1.0f;
+	static float transz = 0.0f;
+	static float rotAngle = 0.0f;
 
 	glBindFramebuffer(GL_FRAMEBUFFER, fboScene);
 	
@@ -201,7 +199,7 @@ void render(void) {
 	glUseProgram(modelProgram.programObject);
 	glUniformMatrix4fv(0, 1, GL_FALSE, perspective(45.0f, winSize.w / winSize.h, 0.1f, 100.0f));
 	glUniformMatrix4fv(1, 1, GL_FALSE, lookat(glcamera.position, glcamera.front + glcamera.position, glcamera.up));
-	glUniformMatrix4fv(2, 1, GL_FALSE, translate(0.0f, 0.0f, 0.0f) * rotate((float)getTime() * 10.0f, vec3(1.0f, 1.0f, 1.0f)));	
+	glUniformMatrix4fv(2, 1, GL_FALSE, translate(0.0f, 0.0f, transz) * rotate(90.0f, 0.0f, 1.0f, 0.0f) * rotate(rotAngle, vec3(1.0f, 1.0f, 1.0f)));	
 	glUniform3fv(3, 1, glcamera.position);
 	drawModel(&model, 4);
 
@@ -218,10 +216,17 @@ void render(void) {
 		glBindTexture(GL_TEXTURE_2D, texSceneColor);
 	} else if(currentScene == 1) {
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texRoseDay);
+		glBindTexture(GL_TEXTURE_2D, texPromiseDay);
 	}
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glEnable(GL_DEPTH_TEST);
+
+	if(fade < 0.7f) {
+		if(transz > -4.0f) {
+			transz -= gltime.delta * 0.1f;
+		}
+		rotAngle += gltime.delta * 10.0f;
+	}
 
 	if(startFade) {
 		fade += (float)gltime.delta * 0.2f * signFade;

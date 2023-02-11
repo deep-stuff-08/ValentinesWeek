@@ -13,5 +13,5 @@ void main(void) {
 	vec3 I = vec3(pos - cameraPos);
 	vec3 R;
 	R = reflect(I, normalize(nor));
-	FragColor = texture(image, vec3(R.x, -R.y, R.z)) * vec4(1.0, 0.7, 0.1, 1.0);
+	FragColor = texture(image, vec3(R.x, -R.y, R.z)) * vec4(0.83, 0.68, 0.21, 1.0);
 }
